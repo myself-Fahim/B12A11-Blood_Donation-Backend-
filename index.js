@@ -27,6 +27,7 @@ async function run() {
 
         const database = client.db('Blood_Donation')
         const dataCollection = database.collection('users')
+        const requestCollection = database.collection('request')
 
         app.post('/users', async(req,res)=>{
             const newUser = req.body
@@ -42,7 +43,13 @@ async function run() {
             const query = {email:userMail}
             const result = await dataCollection.findOne(query)
             res.send(result)
-           
+        })
+
+        app.post('/request', async (req,res)=>{
+            const myRequest = req.body;
+            myRequest.status = 'pending'
+            const result = await requestCollection.insertOne(myRequest)
+            res.send(result)
         })
 
         // Send a ping to confirm a successful connection
