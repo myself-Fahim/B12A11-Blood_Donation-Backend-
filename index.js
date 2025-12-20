@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const app = express()
 const cors = require('cors');
@@ -26,7 +26,6 @@ const verifyFBToken = async(req,res,next) =>{
     try{
         const idToken = token.split(' ')[1]
         const decoded = await admin.auth().verifyIdToken(idToken)
-        console.log('decoded Code',decoded)
         req.decoded_email = decoded.email
         next()
     }
@@ -71,12 +70,61 @@ async function run() {
             res.send(result)
         })
 
+        
         app.post('/request', verifyFBToken, async (req,res)=>{
             const myRequest = req.body;
             myRequest.status = 'pending'
             const result = await requestCollection.insertOne(myRequest)
             res.send(result)
         })
+
+
+        app.get('/request/:email',verifyFBToken,async(req,res)=>{
+            const myRequest = req.params.email
+            const query = {email:myRequest}
+            const result = await requestCollection.find().sort({_id:-1}).limit(3).toArray(query)
+            res.send(result)
+          })
+
+        app.get('/request/all-request/:email',verifyFBToken,async(req,res)=>{
+            const myRequest = req.params.email
+            const query = {email:myRequest}
+            const result = await requestCollection.find().toArray(query)
+            res.send(result)
+          })
+
+
+          app.get('/request/id/:id',verifyFBToken, async(req,res)=>{
+            const myId = req.params.id
+            // console.log(myId)
+            const query = {_id:new ObjectId(myId)}
+            const result = await requestCollection.findOne(query)
+            res.send(result)
+          })
+
+
+          app.put('/update/id/:id',verifyFBToken,async(req,res)=>{
+            const myData = req.body
+            const myId = req.params.id
+            const query = {_id: new ObjectId(myId)}
+            const { _id, ...rest } = req.body; 
+            const update = { $set: rest };
+            const result =await requestCollection.updateOne(query,update)
+            res.send(result)
+
+          })
+
+
+         
+          app.delete('/request/id/delete/:id',verifyFBToken,async(req,res)=>{
+            const deleteId = req.params.id
+            const query = {_id:new ObjectId(deleteId)}
+            const result = await requestCollection.deleteOne(query)
+            res.send(result)
+
+          })
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
