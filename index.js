@@ -63,6 +63,16 @@ async function run() {
              
         })
 
+        app.get('/users',verifyFBToken,async(req,res)=>{
+            const result = await dataCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.get('/request',verifyFBToken,async(req,res)=>{
+            const result = await requestCollection.find().toArray()
+            res.send(result)
+        })
+
         app.get('/users/role/:email', async (req,res)=>{
             const userMail = req.params.email
             const query = {email:userMail}
@@ -81,15 +91,14 @@ async function run() {
 
         app.get('/request/:email',verifyFBToken,async(req,res)=>{
             const myRequest = req.params.email
-            const query = {email:myRequest}
-            const result = await requestCollection.find().sort({_id:-1}).limit(3).toArray(query)
+            const result = await requestCollection.find({requesterEmail:myRequest}).sort({_id:-1}).limit(3).toArray()
             res.send(result)
           })
 
         app.get('/request/all-request/:email',verifyFBToken,async(req,res)=>{
             const myRequest = req.params.email
-            const query = {email:myRequest}
-            const result = await requestCollection.find().toArray(query)
+            const query = {requesterEmail:myRequest}
+            const result = await requestCollection.find(query).toArray()
             res.send(result)
           })
 
@@ -111,11 +120,8 @@ async function run() {
             const update = { $set: rest };
             const result =await requestCollection.updateOne(query,update)
             res.send(result)
-
           })
 
-
-         
           app.delete('/request/id/delete/:id',verifyFBToken,async(req,res)=>{
             const deleteId = req.params.id
             const query = {_id:new ObjectId(deleteId)}
