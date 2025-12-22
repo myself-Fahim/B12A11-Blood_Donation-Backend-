@@ -121,6 +121,15 @@ async function run() {
             const result =await requestCollection.updateOne(query,update)
             res.send(result)
           })
+          app.put('/user/id/:id',verifyFBToken,async(req,res)=>{
+            const myData = req.body
+            const myId = req.params.id
+            const query = {_id: new ObjectId(myId)}
+            const { _id, ...rest } = req.body; 
+            const update = { $set: rest };
+            const result =await dataCollection.updateOne(query,update)
+            res.send(result)
+          })
 
           app.delete('/request/id/delete/:id',verifyFBToken,async(req,res)=>{
             const deleteId = req.params.id
